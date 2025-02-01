@@ -11,58 +11,53 @@
       crossorigin="anonymous" />
   </head>
   <body class="bg-dark text-light">
-    <div class="container mt-5">
+    <div class="container py-5">
       <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-12 col-md-10 col-lg-8">
           <h1 class="text-center mb-4">Super Goop Calculator</h1>
 
           <!-- Alcohol Weight Input Section -->
-          <div class="card mb-4 bg-gray">
-            <div class="card-body text-center p-3">
-              <h5 class="card-title mb-3">Base Alcohol Weight</h5>
-              <div class="input-group">
+          <div class="card bg-secondary mb-4">
+            <div class="card-body">
+              <h5 class="card-title text-center mb-3">Base Alcohol Weight</h5>
+              <div class="mb-3">
+                <label for="alcWeight" class="form-label">Grams of 70% Isopropyl Alcohol</label>
                 <input
                   type="number"
                   class="form-control"
                   id="alcWeight"
-                  oninput="calculateFormula()"
                   placeholder="Enter grams..."
+                  oninput="calculateFormula()"
                   autofocus />
-                <span class="input-group-text">Grams of 70% Isopropyl Alcohol</span>
               </div>
             </div>
           </div>
 
           <!-- Formula Results Section -->
-          <div class="row g-3 mt-4">
-            <div class="col-md-4">
-              <div class="input-group mb-2">
-                <label class="form-label w-100">70% Isopropyl Alcohol</label>
-                <div type="number" class="form-control" id="alcFormula"></div>
-                <span class="input-group-text">Grams</span>
+          <div class="row g-3">
+            <div class="col-12 col-md-4">
+              <div class="mb-3">
+                <label for="alcFormula" class="form-label">70% Isopropyl Alcohol</label>
+                <div class="form-control border border-info" id="alcFormula">0 g</div>
               </div>
             </div>
-
-            <div class="col-md-4">
-              <div class="input-group mb-2">
-                <label class="form-label w-100">PVP</label>
-                <div type="number" class="form-control" id="pvpWeight"></div>
-                <span class="input-group-text">Grams</span>
+            <div class="col-12 col-md-4">
+              <div class="mb-3">
+                <label for="pvpWeight" class="form-label">PVP</label>
+                <div class="form-control border border-info" id="pvpWeight">0 g</div>
               </div>
             </div>
-
-            <div class="col-md-4">
-              <div class="input-group mb-2">
-                <label class="form-label w-100">PVA/PVOH</label>
-                <div type="number" class="form-control" id="pvaWeight"></div>
-                <span class="input-group-text">Grams</span>
+            <div class="col-12 col-md-4">
+              <div class="mb-3">
+                <label for="pvaWeight" class="form-label">PVA/PVOH</label>
+                <div class="form-control border border-info" id="pvaWeight">0 g</div>
               </div>
             </div>
           </div>
 
           <!-- Instructions Section -->
           <div class="mt-4 text-center">
-            <p class="lead mb-0">* This calculator assumes a base formula ratio of:</p>
+            <p class="lead mb-1">* This calculator assumes a base formula ratio of:</p>
             <p class="mb-0">93% Isopropyl Alcohol + 5.25% PVP + 1.75% PVA/PVOH</p>
           </div>
         </div>
@@ -73,40 +68,28 @@
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
       integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
       crossorigin="anonymous"></script>
+
     <script>
-      let totalWeight = 0;
-      let ratio = 0.07;
-      let pvp = 0;
-      let pva = 0;
-      let alcohol = 0.0;
-
-      function calculateTotalWeight() {
-        if (alcohol) {
-          totalWeight = Math.round(alcohol / (1 - ratio));
-          calculatePVP();
-          calculatePVA();
-        }
-      }
-
-      function calculatePVP() {
-        pvp = Math.ceil(totalWeight * ratio * 0.75);
-      }
-
-      function calculatePVA() {
-        pva = Math.ceil(totalWeight * ratio * 0.25);
-      }
-
       function calculateFormula() {
         const alcInput = document.getElementById("alcWeight");
+        const alcFormula = document.getElementById("alcFormula");
+        const pvpWeight = document.getElementById("pvpWeight");
+        const pvaWeight = document.getElementById("pvaWeight");
 
-        if (alcInput && !isNaN(alcInput.value)) {
-          alcohol = parseFloat(alcInput.value);
-          calculateTotalWeight();
+        let alcohol = parseFloat(alcInput.value) || 0;
 
-          // Update display values
-          document.getElementById("alcFormula").innerText = alcohol;
-          document.getElementById("pvpWeight").innerText = pvp;
-          document.getElementById("pvaWeight").innerText = pva;
+        if (alcohol > 0) {
+          const totalWeight = Math.round(alcohol / 0.93);
+          const pvp = Math.ceil(totalWeight * 0.0525);
+          const pva = Math.ceil(totalWeight * 0.0175);
+
+          alcFormula.innerText = `${alcohol} g`;
+          pvpWeight.innerText = `${pvp} g`;
+          pvaWeight.innerText = `${pva} g`;
+        } else {
+          alcFormula.innerText = "0 g";
+          pvpWeight.innerText = "0 g";
+          pvaWeight.innerText = "0 g";
         }
       }
     </script>
