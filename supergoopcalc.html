@@ -9,6 +9,12 @@
       rel="stylesheet"
       integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
       crossorigin="anonymous" />
+    <style>
+      .acceptable { background-color: green !important; color: white; font-weight: bold; }
+      .unacceptable { background-color: red !important; color: white; font-weight: bold; }
+      .input-warning { background-color: red !important; font-weight: bold; }
+      body, h1, h5, label, .form-control, .form-check-label, .lead, p { font-weight: bold; }
+    </style>
   </head>
   <body class="bg-dark text-light">
     <div class="container py-5">
@@ -21,7 +27,7 @@
             <div class="card-body">
               <h5 class="card-title text-center mb-3">Base Alcohol Weight</h5>
               <div class="mb-3">
-                <label for="alcWeight" class="form-label">Grams of 70% Isopropyl Alcohol</label>
+                <label for="alcWeight" class="form-label">Grams of 70% Isopropyl Alcohol (Min: 50g)</label>
                 <input
                   type="number"
                   class="form-control"
@@ -29,6 +35,11 @@
                   placeholder="Enter grams..."
                   oninput="calculateFormula()"
                   autofocus />
+                <small id="warningMessage" class="text-warning d-none">Minimum input is 50g.</small>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="preciseMode" onchange="calculateFormula()">
+                <label class="form-check-label" for="preciseMode">Enable Precise Mode</label>
               </div>
             </div>
           </div>
@@ -38,19 +49,19 @@
             <div class="col-12 col-md-4">
               <div class="mb-3">
                 <label for="alcFormula" class="form-label">70% Isopropyl Alcohol</label>
-                <div class="form-control border border-info" id="alcFormula">0 g</div>
+                <div class="form-control border border-info" id="alcFormula">0 g (0%)</div>
               </div>
             </div>
             <div class="col-12 col-md-4">
               <div class="mb-3">
                 <label for="pvpWeight" class="form-label">PVP</label>
-                <div class="form-control border border-info" id="pvpWeight">0 g</div>
+                <div class="form-control border border-info" id="pvpWeight">0 g (0%)</div>
               </div>
             </div>
             <div class="col-12 col-md-4">
               <div class="mb-3">
                 <label for="pvaWeight" class="form-label">PVA/PVOH</label>
-                <div class="form-control border border-info" id="pvaWeight">0 g</div>
+                <div class="form-control border border-info" id="pvaWeight">0 g (0%)</div>
               </div>
             </div>
           </div>
@@ -64,33 +75,68 @@
       </div>
     </div>
 
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-      crossorigin="anonymous"></script>
-
     <script>
       function calculateFormula() {
         const alcInput = document.getElementById("alcWeight");
         const alcFormula = document.getElementById("alcFormula");
         const pvpWeight = document.getElementById("pvpWeight");
         const pvaWeight = document.getElementById("pvaWeight");
+        const preciseMode = document.getElementById("preciseMode").checked;
+        const warningMessage = document.getElementById("warningMessage");
 
-        let alcohol = parseFloat(alcInput.value) || 0;
-
-        if (alcohol > 0) {
-          const totalWeight = Math.round(alcohol / 0.93);
-          const pvp = Math.ceil(totalWeight * 0.0525);
-          const pva = Math.ceil(totalWeight * 0.0175);
-
-          alcFormula.innerText = `${alcohol} g`;
-          pvpWeight.innerText = `${pvp} g`;
-          pvaWeight.innerText = `${pva} g`;
-        } else {
-          alcFormula.innerText = "0 g";
-          pvpWeight.innerText = "0 g";
-          pvaWeight.innerText = "0 g";
+        let alcohol = parseFloat(alcInput.value);
+        
+        if (!alcInput.value || alcohol < 50) {
+          alcFormula.innerText = "0 g (0%)";
+          pvpWeight.innerText = "0 g (0%)";
+          pvaWeight.innerText = "0 g (0%)";
+          clearBoxColors([alcFormula, pvpWeight, pvaWeight]);
+          
+          if (alcohol < 50) {
+            alcInput.classList.add("input-warning");
+            warningMessage.classList.remove("d-none");
+          } else {
+            alcInput.classList.remove("input-warning");
+            warningMessage.classList.add("d-none");
+          }
+          return;
         }
+
+        alcInput.classList.remove("input-warning");
+        warningMessage.classList.add("d-none");
+
+        const totalWeight = Math.round(alcohol / 0.93);
+        const pvp = preciseMode ? (totalWeight * 0.0525).toFixed(1) : Math.ceil(totalWeight * 0.0525);
+        const pva = preciseMode ? (totalWeight * 0.0175).toFixed(1) : Math.ceil(totalWeight * 0.0175);
+
+        const actualAlcoholPercentage = ((alcohol / totalWeight) * 100).toFixed(2);
+        const actualPvpPercentage = ((pvp / totalWeight) * 100).toFixed(2);
+        const actualPvaPercentage = ((pva / totalWeight) * 100).toFixed(2);
+
+        alcFormula.innerText = `${alcohol} g (${actualAlcoholPercentage}%)`;
+        pvpWeight.innerText = `${pvp} g (${actualPvpPercentage}%)`;
+        pvaWeight.innerText = `${pva} g (${actualPvaPercentage}%)`;
+
+        setBoxColor(alcFormula, actualAlcoholPercentage, 93);
+        setBoxColor(pvpWeight, actualPvpPercentage, 5.25);
+        setBoxColor(pvaWeight, actualPvaPercentage, 1.75);
+      }
+      
+      function setBoxColor(element, actual, expected) {
+        const tolerance = 2;
+        if (Math.abs(actual - expected) <= tolerance) {
+          element.classList.remove("unacceptable");
+          element.classList.add("acceptable");
+        } else {
+          element.classList.remove("acceptable");
+          element.classList.add("unacceptable");
+        }
+      }
+
+      function clearBoxColors(elements) {
+        elements.forEach(element => {
+          element.classList.remove("acceptable", "unacceptable");
+        });
       }
     </script>
   </body>
