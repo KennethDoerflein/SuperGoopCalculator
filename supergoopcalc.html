@@ -10,10 +10,30 @@
       integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
       crossorigin="anonymous" />
     <style>
-      .acceptable { background-color: green !important; color: white; font-weight: bold; }
-      .unacceptable { background-color: red !important; color: white; font-weight: bold; }
-      .input-warning { background-color: red !important; font-weight: bold; }
-      body, h1, h5, label, .form-control, .form-check-label, .lead, p { font-weight: bold; }
+      .acceptable {
+        background-color: green !important;
+        color: white;
+        font-weight: bold;
+      }
+      .unacceptable {
+        background-color: red !important;
+        color: white;
+        font-weight: bold;
+      }
+      .input-warning {
+        background-color: red !important;
+        font-weight: bold;
+      }
+      body,
+      h1,
+      h5,
+      label,
+      .form-control,
+      .form-check-label,
+      .lead,
+      p {
+        font-weight: bold;
+      }
     </style>
   </head>
   <body class="bg-dark text-light">
@@ -22,12 +42,13 @@
         <div class="col-12 col-md-10 col-lg-8">
           <h1 class="text-center mb-4">Super Goop Calculator</h1>
 
-          <!-- Alcohol Weight Input Section -->
           <div class="card bg-secondary mb-4">
             <div class="card-body">
               <h5 class="card-title text-center mb-3">Base Alcohol Weight</h5>
               <div class="mb-3">
-                <label for="alcWeight" class="form-label">Grams of 70% Isopropyl Alcohol (Min: 50g)</label>
+                <label for="alcWeight" class="form-label"
+                  >Grams of 70% Isopropyl Alcohol (Min: 50g)</label
+                >
                 <input
                   type="number"
                   class="form-control"
@@ -38,13 +59,16 @@
                 <small id="warningMessage" class="text-warning d-none">Minimum input is 50g.</small>
               </div>
               <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="preciseMode" onchange="calculateFormula()">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="preciseMode"
+                  onchange="calculateFormula()" />
                 <label class="form-check-label" for="preciseMode">Enable Precise Mode</label>
               </div>
             </div>
           </div>
 
-          <!-- Formula Results Section -->
           <div class="row g-3">
             <div class="col-12 col-md-4">
               <div class="mb-3">
@@ -66,7 +90,6 @@
             </div>
           </div>
 
-          <!-- Instructions Section -->
           <div class="mt-4 text-center">
             <p class="lead mb-1">* This calculator assumes a base formula ratio of:</p>
             <p class="mb-0">93% Isopropyl Alcohol + 5.25% PVP + 1.75% PVA/PVOH</p>
@@ -85,14 +108,14 @@
         const warningMessage = document.getElementById("warningMessage");
 
         let alcohol = parseFloat(alcInput.value);
-        
+
         if (!alcInput.value || alcohol < 50) {
           alcFormula.innerText = "0 g (0%)";
           pvpWeight.innerText = "0 g (0%)";
           pvaWeight.innerText = "0 g (0%)";
           clearBoxColors([alcFormula, pvpWeight, pvaWeight]);
-          
-          if (alcohol < 50) {
+
+          if (alcohol < 50 && alcInput.value) {
             alcInput.classList.add("input-warning");
             warningMessage.classList.remove("d-none");
           } else {
@@ -105,25 +128,41 @@
         alcInput.classList.remove("input-warning");
         warningMessage.classList.add("d-none");
 
-        const totalWeight = Math.round(alcohol / 0.93);
-        const pvp = preciseMode ? (totalWeight * 0.0525).toFixed(1) : Math.ceil(totalWeight * 0.0525);
-        const pva = preciseMode ? (totalWeight * 0.0175).toFixed(1) : Math.ceil(totalWeight * 0.0175);
+        const pvpRatio = 5.25 / 93;
+        const pvaRatio = 1.75 / 93;
 
-        const actualAlcoholPercentage = ((alcohol / totalWeight) * 100).toFixed(2);
-        const actualPvpPercentage = ((pvp / totalWeight) * 100).toFixed(2);
-        const actualPvaPercentage = ((pva / totalWeight) * 100).toFixed(2);
+        let pvp;
+        let pva;
 
-        alcFormula.innerText = `${alcohol} g (${actualAlcoholPercentage}%)`;
-        pvpWeight.innerText = `${pvp} g (${actualPvpPercentage}%)`;
-        pvaWeight.innerText = `${pva} g (${actualPvaPercentage}%)`;
+        if (preciseMode) {
+          pvp = parseFloat((alcohol * pvpRatio).toFixed(1));
+          pva = parseFloat((alcohol * pvaRatio).toFixed(1));
+        } else {
+          pvp = Math.ceil(alcohol * pvpRatio);
+          pva = Math.ceil(alcohol * pvaRatio);
+        }
+
+        const actualTotalWeight = alcohol + pvp + pva;
+
+        const actualAlcoholPercentage = (alcohol / actualTotalWeight) * 100;
+        const actualPvpPercentage = (pvp / actualTotalWeight) * 100;
+        const actualPvaPercentage = (pva / actualTotalWeight) * 100;
+
+        alcFormula.innerText = `${alcohol} g (${actualAlcoholPercentage.toFixed(2)}%)`;
+        pvpWeight.innerText = `${
+          preciseMode ? pvp.toFixed(1) : pvp
+        } g (${actualPvpPercentage.toFixed(2)}%)`;
+        pvaWeight.innerText = `${
+          preciseMode ? pva.toFixed(1) : pva
+        } g (${actualPvaPercentage.toFixed(2)}%)`;
 
         setBoxColor(alcFormula, actualAlcoholPercentage, 93);
         setBoxColor(pvpWeight, actualPvpPercentage, 5.25);
         setBoxColor(pvaWeight, actualPvaPercentage, 1.75);
       }
-      
+
       function setBoxColor(element, actual, expected) {
-        const tolerance = 2;
+        const tolerance = 2; // You can adjust this tolerance if needed
         if (Math.abs(actual - expected) <= tolerance) {
           element.classList.remove("unacceptable");
           element.classList.add("acceptable");
@@ -134,7 +173,7 @@
       }
 
       function clearBoxColors(elements) {
-        elements.forEach(element => {
+        elements.forEach((element) => {
           element.classList.remove("acceptable", "unacceptable");
         });
       }
