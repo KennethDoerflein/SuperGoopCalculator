@@ -1,4 +1,4 @@
-# SuperGoop Calculator
+# [SuperGoop Calculator](https://kennethdoerflein.github.io/SuperGoopCalculator/)
 
 A sleek, web-based calculator for formulating **Super Goop** — a 3D printer bed adhesive made from 70% isopropyl alcohol, PVP, and PVA/PVOH.
 
